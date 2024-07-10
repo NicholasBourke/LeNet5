@@ -1,17 +1,7 @@
-LeNet-5 convolutional neural network as based on "Gradient-based Learning Applied to Document Recognition" (Y.LeCun, L.Bottou, Y.Bengio, P.Haffner; 1998).
+# LeNet-5
 
-Object-oriented programming in Python without the use of deep learning packages (ie. no PyTorch etc.). Packages used for calculations limited to NumPy and SciPy.
+LeNet-5, a convolutional neural network described in _Gradient-based Learning Applied to Document Recognition_ (LeCun et al, 1998), implemented in Python using only NumPy and SciPy, ie. without assistance from any deep learning packages such as PyTorch. The aim was to construct (and potentially train) a working model from first principles in order to gain a deeper understanding of the underlying mathematical processes.
 
-No autograd or similar, gradient expressions determined by hand and backpropagation coded as layer class methods in the same way as the forward propagation usually is.
+An object-oriented approach was used, with classes for fully-connected, convolutional, and max-pooling layers, and the model itself. Each class has methods for forward/backward propagation and gradient update, with the necessary expressions for each determined by hand and hard-coded.
 
-Fully-connected, convolutional, and max-pooling layers scripted in layers.py module and imported into main.py.
-
-MNIST dataset loaded from .png images (function imported from MNIST.py).
-
-Uses ReLU instead of sigmoid activation function used in original paper (coded in layer classes).
-
-Loss function is mean-squared error (MSE) as in original paper.
-
-Uses Kaiming He initialisation method to initialise weights/filters.
-
-Quite slow on available hardware (CPU) and so no optimization attempted besides a little adjusing to the batch size. Stil reasonably accurate despite this (~84%).
+Earlier versions had a self-coded convolution function, however for efficiency it was decided to use SciPy's signal.correlate function instead as the first version was too computationally expensive.

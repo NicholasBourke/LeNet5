@@ -179,19 +179,15 @@ class LeNet5:
         self.fc3 = FC(84, 10)
 
     def forward(self, x):
-        z1 = self.pool1.forward(self.conv1.forward(x))
-        z2 = self.pool2.forward(self.conv2.forward(z1))
-        a1 = self.fc1.forward(z2)
-        a2 = self.fc2.forward(a1)
-        y = self.fc3.forward(a2)
-        return y
+        a = self.pool1.forward(self.conv1.forward(x))
+        a = self.pool2.forward(self.conv2.forward(a))
+        a = self.fc3.forward(self.fc2.forward(self.fc1.forward(a)))
+        return a
 
-    def backward(self, dCdy):
-        dCda2 = self.fc3.backward(dCdy)
-        dCda1 = self.fc2.backward(dCda2)
-        dCdz2 = self.fc1.backward(dCda1)
-        dCdz1 = self.conv2.backward(self.pool2.backward(dCdz2))
-        dCdx = self.conv1.backward(self.pool1.backward(dCdz1))
+    def backward(self, dCda):
+        dCda = self.fc1.backward(self.fc2.backward(self.fc3.backward(dCda)))
+        dCda = self.conv2.backward(self.pool2.backward(dCda))
+        dCdx = self.conv1.backward(self.pool1.backward(dCda))
 
     def update(self, lr):
         self.conv1.update(lr)
