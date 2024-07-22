@@ -4,4 +4,6 @@ LeNet-5, a convolutional neural network described in _Gradient-based Learning Ap
 
 An object-oriented approach was used, with classes for fully-connected, convolutional, and max-pooling layers, and the model itself. Each class has methods for forward/backward propagation and gradient update, with the necessary expressions for each determined by hand and hard-coded.
 
-Earlier versions had a self-coded convolution function, however for efficiency it was decided to use SciPy's signal.correlate function instead as the first version was too computationally expensive.
+The first version had a self-coded convolution function, however for efficiency it was decided to use SciPy's signal.correlate function instead for computational efficiency.
+
+The model has recently been extensively rewritten to be cleaner, more interpretable, and hopefully more efficient. This current version is yet to be trained (or as yet, fully tested), however the previous version achieved an accuracy of 83.7% on the MNIST dataset with almost no hyperparameter fine-tuning. The intention is to train the current version after more careful hyperparameter selection to attain a higher accuracy.
