@@ -15,11 +15,10 @@ def dReLU(X):
 
 class Conv:
     def __init__(self, C, N, f, m, padding=0):
-        # C = number of input channels
-        # N = size of (square) input
-        # f = number of filters
-        # m = size of (square) filters
-        # p = padding size
+        """Convolutional Layer
+        input dimensions:   (C, N, N)
+        filter dimensions:  (f, m, m)
+        """
         self.filters = np.random.normal(0, np.sqrt(2/(C*N*N)), size=(f, C, m, m))
         self.bias = np.zeros(f)
         self.F_grads = []
@@ -33,20 +32,18 @@ class Conv:
             a = np.pad(a, ((0, 0), (self.pad, self.pad), (self.pad, self.pad)), constant_values=0)
 
         self.down = a     # store downstream activations for backpropagation
-
         maps = []
         for x in range(self.dim[0]):
-            filter = self.filters[x,:,:,:]      # select current filter from filters array
+            filter = self.filters[x, :, :, :]   # select current filter from filters array
             Z = sg.correlate(a, filter, mode='valid') + self.bias[x]    # cross-correlate filter and input to produce feature map
-            maps.append(Z)      # append to list of feature maps for stacking
+            maps.append(Z)
         return ReLU(np.concatenate(maps))
 
     def backward(self, dCdA):
-
         ### calculate dAdZ (f_L, N_L, N_L)
         maps = []
         for x in range(self.dim[0]):
-            filter = self.filters[x,:,:,:]                                      # select current filter from filters array
+            filter = self.filters[x, :, :, :]                                      # select current filter from filters array
             Z = sg.correlate(self.down, filter, mode='valid') + self.bias[x]       # cross-correlate filter and input to produce feature map
             maps.append(Z)
         dAdZ = dReLU(np.concatenate(maps))
@@ -58,24 +55,24 @@ class Conv:
         ### filter gradient dCdF
         dCdF = np.zeros(self.dim)
         for x in range(self.dim[0]):
-            dCdZ_x = np.array([dCdZ[x,:,:]])
+            dCdZ_x = np.array([dCdZ[x, :, :]])
             for y in range(self.dim[1]):
-                A_down_y = np.array([self.down[y,:,:]])
-                dCdF[x,y,:,:] = sg.correlate(A_down_y, dCdZ_x, mode='valid')
+                A_down_y = np.array([self.down[y, :, :]])
+                dCdF[x, y, :, :] = sg.correlate(A_down_y, dCdZ_x, mode='valid')
         self.F_grads.append(dCdF)
 
         ### bias gradient dCdb
-        dCdb = np.sum(dCdZ, axis=(1,2))
+        dCdb = np.sum(dCdZ, axis=(1, 2))
         self.b_grads.append(dCdb)
 
         # DOWNSTREAM GRADIENTS
         A_dim = self.down.shape
         dCdA_down = np.zeros(A_dim)
-        pad = self.dim[2]-1
-        dCdZ_pad = np.pad(dCdZ, pad, constant_values=0)[pad:-pad,:,:]   # pad non-channel dimensions by m_L-1
+        pad = self.dim[2] - 1
+        dCdZ_pad = np.pad(dCdZ, pad, constant_values=0)[pad: -pad, :, :]   # pad non-channel dimensions by m_L-1
         for y in range(self.dim[1]):
-            F_y = self.filters[:,y,:,:]
-            dCdA_down[y,:,:] = sg.convolve(dCdZ_pad, F_y, mode='valid')
+            F_y = self.filters[:, y, :, :]
+            dCdA_down[y, :, :] = sg.convolve(dCdZ_pad, F_y, mode='valid')
 
         return dCdA_down
 
@@ -93,9 +90,11 @@ class Conv:
 
 class FC:
     def __init__(self, N, M):
-        # N = size of input
-        # M = size of output
-        self.weights = np.random.normal(0,np.sqrt(2/N**2), size=(M, N))
+        """Fully-Connected Layer
+        input size:     N
+        output size:    M
+        """
+        self.weights = np.random.normal(0, np.sqrt(2/N**2), size=(M, N))
         self.bias = np.zeros(M)
         self.W_grads = []
         self.b_grads = []
@@ -108,7 +107,6 @@ class FC:
         return ReLU(z)
 
     def backward(self, dCda):
-
         dadz = dReLU(self.weights @ self.down + self.bias)
         dCdz = dadz * dCda
         dCdW = np.transpose(np.outer(self.down, dCdz))
@@ -116,9 +114,7 @@ class FC:
         self.W_grads.append(dCdW)
         self.b_grads.append(dCdz)
 
-        dCda_down = np.transpose(self.weights) @ dCdz
-
-        return dCda_down
+        return np.transpose(self.weights) @ dCdz
 
     def update(self, lr):
         # weights update
@@ -134,6 +130,7 @@ class FC:
 
 class MaxPool:
     def __init__(self, size):
+        """Max-Pooling Layer"""
         self.size = size
         self.mask = None
         self.dim = None
